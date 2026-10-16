@@ -2,64 +2,71 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use App\Models\Review;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreReviewRequest;
+use App\Http\Requests\UpdateReviewRequest;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    
+    public function store(StoreReviewRequest $request, Book $book)
     {
-        //
+
+        $validated = $request->validated();
+        
+        $validated['user_id'] = Auth::id();
+        $validated['book_id'] = $book->id;
+        
+        Review::create($validated);
+
+        return redirect()
+        ->route('books.show', $book)
+        ->with('success', 'レビューを投稿しました。');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Review $review)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Review $review)
     {
-        //
+        
+        if ($review->user_id !== Auth::id()) {
+            return redirect()
+                ->route('books.show', $review->book_id)
+                ->with('abort', '投稿者以外のレビューは編集できません。');
+        }
+
+        return view('reviews.edit', compact('review'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Review $review)
+    public function update(UpdateReviewRequest $request, Review $review)
     {
-        //
+        if ($review->user_id !== Auth::id()) {
+            return redirect()
+                ->route('books.show', $review->book_id)
+                ->with('abort', '投稿者以外のレビューは編集できません。');
+        }
+
+        $review->update($request->validated());
+
+        return redirect()
+            ->route('books.show', $review->book_id)
+            ->with('success', 'レビューを更新しました。');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Review $review)
     {
-        //
+        if ($review->user_id !== Auth::id()) {
+            return redirect()
+                ->route('books.show', $review->book_id)
+                ->with('abort', '投稿者以外のレビューは削除できません。');
+        }
+
+        $bookId = $review->book_id;
+        $review->delete();
+
+        return redirect()
+            ->route('books.show', $bookId)
+            ->with('success', 'レビューを削除しました。');
     }
 }

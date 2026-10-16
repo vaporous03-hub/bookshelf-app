@@ -2,30 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
-use App\Http\Controllers\AdminController;
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-Route::middleware(['guest'])->group(function () {
-    });
-Route::middleware(['auth'])->group(function () {
-    Route::get('/books', [BookController::class, 'index'])->name('books.index');
-    Route::prefix('admin')->name('admin.')->group(function () {
-        });
-});
-Route::middleware(['auth'])->group(function () {
-Route::get('/books', [BookController::class, 'index'])->name('books.index');
-Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
-Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
-});
+use App\Http\Controllers\GenreController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\RankingController;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', [BookController::class, 'index'])->name('books.index');
+
+Route::resource('books', BookController::class)->only(['index', 'show']);
+
+Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');
+
+
+Route::middleware(['auth'])->group(function () {
+
+   
+    Route::resource('books', BookController::class)->except(['index', 'show']);
+
+    Route::resource('genres', GenreController::class);
+
+   
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::resource('reviews', ReviewController::class)->only(['edit', 'update', 'destroy']);
+    Route::post('/reviews/{review}/like', [ReviewController::class, 'like'])->name('reviews.like'); 
+
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/books/{book}/favorites', [FavoriteController::class, 'store'])->name('favorites.store');
+    Route::delete('/books/{book}/favorites', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
+
 });
