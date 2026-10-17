@@ -12,15 +12,13 @@ class FavoriteController extends Controller
     public function index(Request $request)
     {
         
-        $user = Auth::user();
-
-        $favoriteBooks = $request->user()
-            ->favorites()
+        $books = $request->user()
+            ->favoriteBooks()
             ->with(['genres'])
             ->latest('favorites.created_at')
             ->paginate(10);
 
-        return view('favorites.index', compact('favoriteBooks'));
+        return view('favorites.index', compact('books'));
     }
 
     public function store(Book $book)
@@ -41,7 +39,7 @@ class FavoriteController extends Controller
     public function toggle(Request $request, Book $book)
     {
         
-        $status = $request->user()->favorites()->toggle($book->id);
+        $status = $request->user()->favoriteBooks()->toggle($book->id);
 
         $isAttached = count($status['attached']) > 0;
         $message = $isAttached ? 'お気に入りに追加しました。' : 'お気に入りを解除しました。';

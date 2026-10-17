@@ -32,7 +32,7 @@ class FavoriteSeeder extends Seeder
                 $bookIds = $randomBooks->pluck('id')->toArray();
 
            
-                $user->favorites()->syncWithoutDetaching($bookIds);
+                $user->favoriteBooks()->syncWithoutDetaching($bookIds);
             }
         }
     }
