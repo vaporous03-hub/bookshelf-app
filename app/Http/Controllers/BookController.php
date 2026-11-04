@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Genre;
-use illuminate\Http\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
@@ -36,13 +36,12 @@ class BookController extends Controller
 
     public function store(StoreBookRequest $request)
     {
+        
+        $validated = $request->validated();
         $validated['user_id'] = Auth::id();
-
         $book = Book::create($validated);
-
-        $book->genres()->attach($request->input('genre_ids'));
-
-
+        $book->genres()->attach($request->input('genres'));
+        
         return redirect()
             ->route('books.show', $book)
             ->with('success', '書籍を登録しました。');
@@ -81,7 +80,7 @@ class BookController extends Controller
 
         $validated = $request->validated();
         $book->update($validated);
-        $book->genres()->sync($request->input('genre_ids'));
+        $book->genres()->sync($request->input('genres'));
 
         return redirect()
             ->route('books.show', $book)
