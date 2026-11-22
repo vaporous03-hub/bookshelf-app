@@ -6,6 +6,9 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReadingPlanController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', [BookController::class, 'index'])->name('books.index');
 Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');
@@ -36,4 +39,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/books/{book}/favorites/store', [FavoriteController::class, 'store'])->name('favorites.store');
     
     Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        
+        Route::post('/reading-plans/{reading_plan}/complete', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
+        Route::resource('reading-plans', ReadingPlanController::class);
+
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    });
 });

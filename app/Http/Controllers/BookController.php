@@ -12,16 +12,52 @@ use App\Http\Requests\UpdateBookRequest;
 class BookController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::with(['genres'])
+        $query = Book::with(['genres'])
+            ->withAvg('reviews', 'rating')
             ->withExists(['favoritedBy as is_favorited' => function ($query) {
                 $query->where('user_id', auth()->id());
             }])
-            ->latest() 
-            ->paginate(10);
+           ;
 
-        return view('books.index', compact('books'));
+            if ($request->filled('keyword')) {
+            $keyword = $request->input('keyword');
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', "%{$keyword}%")
+                  ->orWhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('genre')) {
+            $genreId = $request->input('genre');
+            $query->whereHas('genres', function ($query) use ($genreId) {
+                $query->where('genres.id', $genreId);
+            });
+        }
+
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'title':
+                $query->orderBy('title', 'asc');
+                break;
+            case 'rating':
+
+                $query->orderByRaw('reviews_avg_rating IS NULL ASC')
+                      ->orderBy('reviews_avg_rating', 'desc');
+                break;
+            case 'latest':
+            default:
+                $query->latest();
+                break;
+        }
+        $books = $query->paginate(10)->withQueryString();
+        $genres = Genre::all();
+
+        return view('books.index', compact('books', 'genres', 'sort'));
     }
 
 
