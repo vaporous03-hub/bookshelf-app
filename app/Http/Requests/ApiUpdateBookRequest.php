@@ -18,7 +18,7 @@ class ApiUpdateBookRequest extends FormRequest
     public function rules(): array
     {
         
-        $bookId = $this->route('book'); 
+        $bookId = $this->route('book')?->id ?? $this->route('book'); 
 
         return [
             'title'       => ['required', 'string', 'max:255'],
